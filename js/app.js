@@ -393,18 +393,19 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
     : `<table><thead><tr><th>Nombre</th><th>Email</th>${role!=='user'?'<th></th>':''}</tr></thead><tbody>
         ${bookings.map(b => `<tr>
           <td>${b.userName}</td><td style="color:var(--muted)">${b.userEmail}</td>
-          ${role!=='user'?`<td><button class="btn btn-danger btn-sm" onclick="cancelBooking('${b.id}')">Cancelar</button></td>`:''}
+          ${role!=='user' && !isLocked ? `<td><button class="btn btn-danger btn-sm" onclick="cancelBooking('${b.id}')">Cancelar</button></td>` : '<td></td>'}
         </tr>`).join('')}
       </tbody></table>`;
 
   let actionBtn = '';
   const myB = bookings.find(b => b.userId === currentUser.uid);
-  if (myB) {
-    actionBtn = `<button class="btn btn-danger" onclick="cancelBooking('${myB.id}')">Cancelar mi reserva</button>`;
-  } else if (isLocked && role !== 'admin') {
-    actionBtn = `<span class="badge badge-pending">⏱ Reservas no disponibles aún</span>`;
-  } else if (isLocked && role === 'admin') {
+  if (isLocked) {
+    // Clase pasada o cerrada — nadie puede cancelar ni reservar
     actionBtn = `<span class="badge badge-blocked">Clase ya finalizada</span>`;
+  } else if (myB) {
+    actionBtn = `<button class="btn btn-danger" onclick="cancelBooking('${myB.id}')">Cancelar mi reserva</button>`;
+  } else if (role !== 'admin' && isLocked) {
+    actionBtn = `<span class="badge badge-pending">⏱ Reservas no disponibles aún</span>`;
   } else if (!isFull || role === 'admin') {
     if (role === 'user') {
       actionBtn = `<button class="btn btn-primary" onclick="makeBooking('${sessionId}','${dk}','${time}','${dayName}')">Reservar esta clase</button>`;
