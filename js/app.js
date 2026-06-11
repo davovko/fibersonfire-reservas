@@ -308,12 +308,15 @@ async function loadReservas() {
         const closeAt = new Date(classStart.getTime() -  1 * 60 * 60 * 1000);
         const now = new Date();
         const isAdminRole = currentUserData.role === 'admin';
+        const isPast = now > classStart; // fecha/hora ya pasó — bloquea para todos
         const notYetOpen = now < openAt;
         const alreadyClosed = now > closeAt;
-        const isLocked = !isAdminRole && (notYetOpen || alreadyClosed) && !myBooking;
+        const isLocked = isPast || (!isAdminRole && (notYetOpen || alreadyClosed) && !myBooking);
 
         let lockLabel = '';
-        if (!isAdminRole && notYetOpen) {
+        if (isPast) {
+          lockLabel = `<div style="font-size:10px;color:var(--muted);margin-top:4px">✓ Clase finalizada</div>`;
+        } else if (!isAdminRole && notYetOpen) {
           lockLabel = `<div style="font-size:10px;color:var(--warning);margin-top:4px">🔒 Abre ${openAt.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>`;
         } else if (!isAdminRole && alreadyClosed && !myBooking) {
           lockLabel = `<div style="font-size:10px;color:var(--muted);margin-top:4px">⏱ Reserva cerrada</div>`;
@@ -400,6 +403,8 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
     actionBtn = `<button class="btn btn-danger" onclick="cancelBooking('${myB.id}')">Cancelar mi reserva</button>`;
   } else if (isLocked && role !== 'admin') {
     actionBtn = `<span class="badge badge-pending">⏱ Reservas no disponibles aún</span>`;
+  } else if (isLocked && role === 'admin') {
+    actionBtn = `<span class="badge badge-blocked">Clase ya finalizada</span>`;
   } else if (!isFull || role === 'admin') {
     if (role === 'user') {
       actionBtn = `<button class="btn btn-primary" onclick="makeBooking('${sessionId}','${dk}','${time}','${dayName}')">Reservar esta clase</button>`;
