@@ -301,7 +301,13 @@ async function loadReservas() {
         const trainerName = s.trainerId ? (trainerMap[s.trainerId] || 'Sin entrenador') : 'Sin entrenador';
 
         html += `<div class="session-slot ${isFull&&!myBooking?'full':''} ${myBooking?'booked':''}"
-          onclick="handleSlotClick('${s.id}','${dk}','${s.time}','${DAYS[i]}',${isFull},${!!myBooking},'${myBooking?.id||''}',${JSON.stringify(slotBookings).replace(/'/g,'')})">
+          data-session-id="${s.id}"
+          data-dk="${dk}"
+          data-time="${s.time}"
+          data-day="${DAYS[i]}"
+          data-full="${isFull}"
+          data-my-booking="${!!myBooking}"
+          data-booking-id="${myBooking?.id||''}">
           <div class="slot-time">${s.time}</div>
           <div class="slot-trainer">${trainerName}</div>
           <div class="slot-capacity">
@@ -319,9 +325,17 @@ async function loadReservas() {
 
   document.getElementById('prev-week').addEventListener('click', () => { weekOffset--; loadReservas(); });
   document.getElementById('next-week').addEventListener('click', () => { weekOffset++; loadReservas(); });
+
+  // Event delegation for slot clicks
+  cont.addEventListener('click', (e) => {
+    const slot = e.target.closest('.session-slot');
+    if (!slot || slot.classList.contains('blocked')) return;
+    const { sessionId, dk, time, day, full, myBooking, bookingId } = slot.dataset;
+    handleSlotClick(sessionId, dk, time, day, full === 'true', myBooking === 'true', bookingId);
+  });
 }
 
-window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, myBooking, bookingId, slotBookingsRaw) {
+window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, myBooking, bookingId) {
   const modal = document.getElementById('modal-slot');
   const body = document.getElementById('modal-slot-body');
   const role = currentUserData.role;
