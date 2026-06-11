@@ -300,12 +300,32 @@ async function loadReservas() {
         const fillClass = pct >= 100 ? 'full-bar' : pct >= 75 ? 'almost' : '';
         const trainerName = s.trainerId ? (trainerMap[s.trainerId] || 'Sin entrenador') : 'Sin entrenador';
 
-        html += `<div class="session-slot ${isFull&&!myBooking?'full':''} ${myBooking?'booked':''}"
+        // Time window: open 12h before, close 1h before class
+        const startHour = parseInt(s.time.split(':')[0]);
+        const classStart = new Date(date);
+        classStart.setHours(startHour, 0, 0, 0);
+        const openAt  = new Date(classStart.getTime() - 12 * 60 * 60 * 1000);
+        const closeAt = new Date(classStart.getTime() -  1 * 60 * 60 * 1000);
+        const now = new Date();
+        const isAdminRole = currentUserData.role === 'admin';
+        const notYetOpen = now < openAt;
+        const alreadyClosed = now > closeAt;
+        const isLocked = !isAdminRole && (notYetOpen || alreadyClosed) && !myBooking;
+
+        let lockLabel = '';
+        if (!isAdminRole && notYetOpen) {
+          lockLabel = `<div style="font-size:10px;color:var(--warning);margin-top:4px">🔒 Abre ${openAt.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>`;
+        } else if (!isAdminRole && alreadyClosed && !myBooking) {
+          lockLabel = `<div style="font-size:10px;color:var(--muted);margin-top:4px">⏱ Reserva cerrada</div>`;
+        }
+
+        html += `<div class="session-slot ${isFull&&!myBooking?'full':''} ${myBooking?'booked':''} ${isLocked?'full':''}"
           data-session-id="${s.id}"
           data-dk="${dk}"
           data-time="${s.time}"
           data-day="${DAYS[i]}"
           data-full="${isFull}"
+          data-locked="${isLocked}"
           data-my-booking="${!!myBooking}"
           data-booking-id="${myBooking?.id||''}">
           <div class="slot-time">${s.time}</div>
@@ -314,7 +334,7 @@ async function loadReservas() {
             <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width:${pct}%"></div></div>
             <span>${count}/${cap}</span>
           </div>
-          ${myBooking ? '<div style="font-size:10px;color:var(--accent);margin-top:4px">✓ Reservado</div>' : ''}
+          ${myBooking ? '<div style="font-size:10px;color:var(--accent);margin-top:4px">✓ Reservado</div>' : lockLabel}
         </div>`;
       }
     }
@@ -330,12 +350,12 @@ async function loadReservas() {
   cont.addEventListener('click', (e) => {
     const slot = e.target.closest('.session-slot');
     if (!slot || slot.classList.contains('blocked')) return;
-    const { sessionId, dk, time, day, full, myBooking, bookingId } = slot.dataset;
-    handleSlotClick(sessionId, dk, time, day, full === 'true', myBooking === 'true', bookingId);
+    const { sessionId, dk, time, day, full, locked, myBooking, bookingId } = slot.dataset;
+    handleSlotClick(sessionId, dk, time, day, full === 'true', locked === 'true', myBooking === 'true', bookingId);
   });
 }
 
-window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, myBooking, bookingId) {
+window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, isLocked, myBooking, bookingId) {
   const modal = document.getElementById('modal-slot');
   const body = document.getElementById('modal-slot-body');
   const role = currentUserData.role;
@@ -358,6 +378,8 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, my
   const myB = bookings.find(b => b.userId === currentUser.uid);
   if (myB) {
     actionBtn = `<button class="btn btn-danger" onclick="cancelBooking('${myB.id}')">Cancelar mi reserva</button>`;
+  } else if (isLocked) {
+    actionBtn = `<span class="badge badge-pending">⏱ Reservas no disponibles aún</span>`;
   } else if (!isFull || role === 'admin') {
     if (role !== 'trainer') {
       actionBtn = `<button class="btn btn-primary" onclick="makeBooking('${sessionId}','${dk}','${time}','${dayName}')">Reservar esta clase</button>`;
