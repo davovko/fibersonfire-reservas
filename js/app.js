@@ -365,8 +365,28 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
     where('sessionId','==',sessionId), where('dateKey','==',dk), where('status','==','activa')));
   const bookings = bookingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+  // Fetch active users for admin selector
+  let adminAssignHtml = '';
+  if (role === 'admin') {
+    const usersSnap = await getDocs(query(collection(db,'users'), where('status','==','active')));
+    const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const bookedIds = bookings.map(b => b.userId);
+    const available = users.filter(u => !bookedIds.includes(u.id));
+    const options = available.map(u => `<option value="${u.id}" data-name="${u.name||u.email}" data-email="${u.email}">${u.name||u.email}</option>`).join('');
+    adminAssignHtml = `
+      <div class="divider"></div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:10px">Inscribir usuario</p>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-select" id="assign-user-select" style="flex:1">
+          <option value="">Selecciona un usuario...</option>
+          ${options}
+        </select>
+        <button class="btn btn-primary" onclick="adminAssignUser('${sessionId}','${dk}','${time}','${dayName}')">Inscribir</button>
+      </div>`;
+  }
+
   let peopleHtml = bookings.length === 0
-    ? '<p style="color:var(--muted);font-size:13px">Nadie reservado aún.</p>'
+    ? '<p style="color:var(--muted);font-size:13px">Nadie inscrito aún.</p>'
     : `<table><thead><tr><th>Nombre</th><th>Email</th>${role!=='user'?'<th></th>':''}</tr></thead><tbody>
         ${bookings.map(b => `<tr>
           <td>${b.userName}</td><td style="color:var(--muted)">${b.userEmail}</td>
@@ -378,10 +398,10 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
   const myB = bookings.find(b => b.userId === currentUser.uid);
   if (myB) {
     actionBtn = `<button class="btn btn-danger" onclick="cancelBooking('${myB.id}')">Cancelar mi reserva</button>`;
-  } else if (isLocked) {
+  } else if (isLocked && role !== 'admin') {
     actionBtn = `<span class="badge badge-pending">⏱ Reservas no disponibles aún</span>`;
   } else if (!isFull || role === 'admin') {
-    if (role !== 'trainer') {
+    if (role === 'user') {
       actionBtn = `<button class="btn btn-primary" onclick="makeBooking('${sessionId}','${dk}','${time}','${dayName}')">Reservar esta clase</button>`;
     }
   } else {
@@ -391,12 +411,40 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
   body.innerHTML = `
     <p style="color:var(--muted);font-size:13px;margin-bottom:16px">${dayName} · ${time}</p>
     <div class="divider"></div>
-    <p style="font-size:13px;font-weight:600;margin-bottom:10px">Inscritos</p>
+    <p style="font-size:13px;font-weight:600;margin-bottom:10px">Inscritos (${bookings.length})</p>
     ${peopleHtml}
-    <div style="margin-top:20px">${actionBtn}</div>`;
+    ${adminAssignHtml}
+    ${actionBtn ? `<div style="margin-top:20px">${actionBtn}</div>` : ''}`;
 
   document.getElementById('modal-slot-title').textContent = `Clase ${time}`;
   modal.classList.add('open');
+};
+
+window.adminAssignUser = async function(sessionId, dk, time, dayName) {
+  const sel = document.getElementById('assign-user-select');
+  const uid = sel.value;
+  if (!uid) { toast('Selecciona un usuario', 'error'); return; }
+  const opt = sel.options[sel.selectedIndex];
+  const userName = opt.dataset.name;
+  const userEmail = opt.dataset.email;
+
+  // Check capacity
+  const snap = await getDocs(query(collection(db,'bookings'),
+    where('sessionId','==',sessionId), where('dateKey','==',dk), where('status','==','activa')));
+  const sessionSnap = await getDoc(doc(db,'sessions',sessionId));
+  const cap = sessionSnap.data()?.capacity || 4;
+  if (snap.size >= cap) { toast('La clase ya está llena', 'error'); return; }
+
+  await addDoc(collection(db,'bookings'), {
+    sessionId, dateKey: dk, time, dayName,
+    userId: uid, userName, userEmail,
+    status: 'activa',
+    assignedByAdmin: true,
+    createdAt: serverTimestamp()
+  });
+  toast(`${userName} inscrito correctamente`);
+  closeModal('modal-slot');
+  loadReservas();
 };
 
 window.makeBooking = async function(sessionId, dk, time, dayName) {
