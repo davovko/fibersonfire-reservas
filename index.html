@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gym Reservas</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="login-screen" class="login-page" style="display:flex">
+  <div class="login-box">
+    <div class="login-logo">💪 GymApp</div>
+    <div class="login-tagline">Reserva tu clase, entrena con propósito.</div>
+    <button class="btn-google" id="btn-google-login">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continuar con Google
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PENDING SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="pending-screen" class="login-page" style="display:none">
+  <div class="login-box">
+    <div class="pending-box">
+      <div class="pending-icon">⏳</div>
+      <h2>Cuenta pendiente</h2>
+      <p style="margin-top:8px">Tu cuenta está esperando aprobación del administrador. Te avisarán cuando esté lista.</p>
+      <button class="btn btn-secondary" id="btn-logout-pending" style="margin-top:24px">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     BLOCKED SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="blocked-screen" class="login-page" style="display:none">
+  <div class="login-box">
+    <div class="pending-box">
+      <div class="pending-icon">🚫</div>
+      <h2>Cuenta bloqueada</h2>
+      <p style="margin-top:8px">Tu cuenta ha sido desactivada. Contacta al administrador para más información.</p>
+      <button class="btn btn-secondary" id="btn-logout-blocked" style="margin-top:24px" onclick="signOut && signOut()">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     APP SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="app-screen" class="app-shell" style="display:none">
+
+  <!-- Hamburger (mobile) -->
+  <button class="hamburger" id="hamburger">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="gym-name">💪 GymApp</div>
+      <div class="gym-sub">Sistema de reservas</div>
+    </div>
+
+    <!-- All roles -->
+    <button class="nav-item" data-page="dashboard">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" data-page="reservas">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Reservas
+    </button>
+
+    <!-- Admin only -->
+    <button class="nav-item" data-page="usuarios" data-role="admin" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Usuarios
+    </button>
+    <button class="nav-item" data-page="horarios" data-role="admin" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Horarios
+    </button>
+    <button class="nav-item" data-page="pagos" data-role="admin" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Pagos
+    </button>
+
+    <!-- Admin + Trainer -->
+    <button class="nav-item" data-page="rutinas" data-role="admin,trainer" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/></svg>
+      Rutinas
+    </button>
+    <button class="nav-item" data-page="notas" data-role="trainer" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Notas alumnos
+    </button>
+
+    <!-- User only -->
+    <button class="nav-item" data-page="rutinas" data-role="user" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/></svg>
+      Mis rutinas
+    </button>
+    <button class="nav-item" data-page="historial" data-role="user" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Mi historial
+    </button>
+
+    <!-- All -->
+    <button class="nav-item" data-page="perfil">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Mi perfil
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="sidebar-avatar">U</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-name">—</div>
+          <div class="role-badge" id="sidebar-role">—</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-logout" style="width:100%;margin-top:12px;justify-content:center">
+        Cerrar sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Main content ── -->
+  <main class="main-content">
+
+    <!-- Dashboard -->
+    <div class="page" id="page-dashboard">
+      <div class="page-header">
+        <div><h1>Dashboard</h1><p>Bienvenido de vuelta</p></div>
+      </div>
+      <div id="dashboard-content"></div>
+    </div>
+
+    <!-- Reservas -->
+    <div class="page" id="page-reservas">
+      <div class="page-header">
+        <div><h1>Reservas</h1><p>Selecciona una clase para reservar o ver inscritos</p></div>
+      </div>
+      <div id="reservas-content"></div>
+    </div>
+
+    <!-- Usuarios (admin) -->
+    <div class="page" id="page-usuarios">
+      <div class="page-header">
+        <div><h1>Usuarios</h1><p>Gestiona acceso, roles y estado de los miembros</p></div>
+      </div>
+      <div id="usuarios-content"></div>
+    </div>
+
+    <!-- Horarios (admin) -->
+    <div class="page" id="page-horarios">
+      <div class="page-header">
+        <div><h1>Horarios</h1><p>Configura sesiones y bloquea fechas especiales</p></div>
+      </div>
+      <div id="horarios-content"></div>
+    </div>
+
+    <!-- Pagos (admin) -->
+    <div class="page" id="page-pagos">
+      <div class="page-header">
+        <div><h1>Pagos</h1><p>Registra mensualidades y controla estados de pago</p></div>
+      </div>
+      <div id="pagos-content"></div>
+    </div>
+
+    <!-- Rutinas -->
+    <div class="page" id="page-rutinas">
+      <div class="page-header">
+        <div><h1>Rutinas</h1><p>Asigna y gestiona rutinas de entrenamiento</p></div>
+      </div>
+      <div id="rutinas-content"></div>
+    </div>
+
+    <!-- Notas (trainer) -->
+    <div class="page" id="page-notas">
+      <div class="page-header">
+        <div><h1>Notas de alumnos</h1><p>Observaciones privadas por alumno</p></div>
+      </div>
+      <div id="notas-content"></div>
+    </div>
+
+    <!-- Historial (user) -->
+    <div class="page" id="page-historial">
+      <div class="page-header">
+        <div><h1>Mi historial</h1><p>Todas tus clases pasadas y reservas activas</p></div>
+      </div>
+      <div id="historial-content"></div>
+    </div>
+
+    <!-- Perfil -->
+    <div class="page" id="page-perfil">
+      <div class="page-header">
+        <div><h1>Mi perfil</h1><p>Actualiza tu información personal</p></div>
+      </div>
+      <div id="perfil-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════ -->
+
+<!-- Modal: Ver sesión / reservar -->
+<div class="modal-overlay" id="modal-slot">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-slot-title">Clase</span>
+      <button class="modal-close" onclick="closeModal('modal-slot')">✕</button>
+    </div>
+    <div id="modal-slot-body"></div>
+  </div>
+</div>
+
+<!-- Modal: Cambiar rol -->
+<div class="modal-overlay" id="modal-role">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Cambiar rol</span>
+      <button class="modal-close" onclick="closeModal('modal-role')">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Usuario: <strong id="role-user-name"></strong></p>
+    <input type="hidden" id="role-user-id">
+    <div class="form-group">
+      <label class="form-label">Nuevo rol</label>
+      <select class="form-select" id="role-select">
+        <option value="user">Usuario</option>
+        <option value="trainer">Entrenador</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-role')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-role">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva/editar sesión -->
+<div class="modal-overlay" id="modal-session">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-session-title">Nueva sesión</span>
+      <button class="modal-close" onclick="closeModal('modal-session')">✕</button>
+    </div>
+    <input type="hidden" id="session-id">
+    <div class="two-col">
+      <div class="form-group">
+        <label class="form-label">Día</label>
+        <select class="form-select" id="session-day">
+          <option value="lunes">Lunes</option>
+          <option value="martes">Martes</option>
+          <option value="miercoles">Miércoles</option>
+          <option value="jueves">Jueves</option>
+          <option value="viernes">Viernes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Horario</label>
+        <input class="form-input" id="session-time" placeholder="Ej: 8:00 - 9:00">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="form-group">
+        <label class="form-label">Capacidad máxima</label>
+        <input class="form-input" id="session-capacity" type="number" min="1" value="4">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Entrenador</label>
+        <select class="form-select" id="session-trainer"><option value="">Sin entrenador</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-session')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-session">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Bloquear fecha -->
+<div class="modal-overlay" id="modal-block">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Bloquear fecha</span>
+      <button class="modal-close" onclick="closeModal('modal-block')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" id="block-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Motivo (opcional)</label>
+      <input class="form-input" id="block-reason" placeholder="Ej: Festivo, mantenimiento...">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-block')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-block">Bloquear</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Registrar pago -->
+<div class="modal-overlay" id="modal-pago">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Registrar pago</span>
+      <button class="modal-close" onclick="closeModal('modal-pago')">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Usuario: <strong id="pago-user-name"></strong></p>
+    <input type="hidden" id="pago-user-id">
+    <div class="two-col">
+      <div class="form-group">
+        <label class="form-label">Monto ($)</label>
+        <input class="form-input" id="pago-amount" type="number" placeholder="Ej: 120000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha de pago</label>
+        <input class="form-input" id="pago-date" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <input class="form-input" id="pago-note" placeholder="Ej: Mensualidad junio">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pago')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-pago">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Historial pagos -->
+<div class="modal-overlay" id="modal-historial-pago">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-historial-pago-title">Historial de pagos</span>
+      <button class="modal-close" onclick="closeModal('modal-historial-pago')">✕</button>
+    </div>
+    <div id="modal-historial-pago-body"></div>
+  </div>
+</div>
+
+<!-- Modal: Rutina -->
+<div class="modal-overlay" id="modal-rutina">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-rutina-title">Nueva rutina</span>
+      <button class="modal-close" onclick="closeModal('modal-rutina')">✕</button>
+    </div>
+    <input type="hidden" id="rutina-id">
+    <div class="form-group">
+      <label class="form-label">Usuario</label>
+      <select class="form-select" id="rutina-user"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="rutina-title" placeholder="Ej: Rutina de fuerza - semana 1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contenido</label>
+      <textarea class="form-textarea" id="rutina-content" style="min-height:140px" placeholder="Ejercicios, series, repeticiones, notas..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rutina')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-rutina">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nota entrenador -->
+<div class="modal-overlay" id="modal-nota">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-nota-title">Nueva nota</span>
+      <button class="modal-close" onclick="closeModal('modal-nota')">✕</button>
+    </div>
+    <input type="hidden" id="nota-id">
+    <div class="form-group">
+      <label class="form-label">Alumno</label>
+      <select class="form-select" id="nota-user"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nota</label>
+      <textarea class="form-textarea" id="nota-content" style="min-height:120px" placeholder="Observaciones sobre el progreso, técnica, objetivos..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-nota')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-nota">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

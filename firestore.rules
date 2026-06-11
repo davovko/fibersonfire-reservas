@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function isAdmin() {
+      return isAuth() && getUserData().role == 'admin';
+    }
+    function isTrainer() {
+      return isAuth() && getUserData().role == 'trainer';
+    }
+    function isActive() {
+      return isAuth() && getUserData().status == 'active';
+    }
+
+    // Users
+    match /users/{uid} {
+      allow read: if isAuth();
+      allow create: if request.auth.uid == uid;
+      allow update: if request.auth.uid == uid || isAdmin();
+    }
+
+    // Sessions
+    match /sessions/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    // Bookings
+    match /bookings/{id} {
+      allow read: if isActive();
+      allow create: if isActive() && request.resource.data.userId == request.auth.uid;
+      allow update: if isActive() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Blocked dates
+    match /blocked_dates/{id} {
+      allow read: if isActive();
+      allow write: if isAdmin();
+    }
+
+    // Payments
+    match /payments/{id} {
+      allow read: if isAdmin() || (isActive() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // Routines
+    match /routines/{id} {
+      allow read: if isAdmin() || isTrainer() || (isActive() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin() || isTrainer();
+    }
+
+    // Trainer notes
+    match /trainer_notes/{id} {
+      allow read: if isAdmin() || (isTrainer() && resource.data.trainerId == request.auth.uid);
+      allow write: if isAdmin() || isTrainer();
+    }
+  }
+}
