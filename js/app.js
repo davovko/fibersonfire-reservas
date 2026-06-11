@@ -1,4 +1,3 @@
-// v3
 import { auth, db } from './firebase.js';
 import {
   GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
