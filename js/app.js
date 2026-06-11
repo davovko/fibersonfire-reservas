@@ -368,9 +368,9 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
     where('sessionId','==',sessionId), where('dateKey','==',dk), where('status','==','activa')));
   const bookings = bookingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  // Fetch active users for admin selector
+  // Fetch active users for admin selector — solo clases NO pasadas
   let adminAssignHtml = '';
-  if (role === 'admin') {
+  if (role === 'admin' && !isLocked) {
     const usersSnap = await getDocs(query(collection(db,'users'), where('status','==','active')));
     const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     const bookedIds = bookings.map(b => b.userId);
