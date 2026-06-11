@@ -575,7 +575,10 @@ window.openAddSession = function() {
 window.openEditSession = function(id, day, time, capacity, trainerId) {
   document.getElementById('session-id').value = id;
   document.getElementById('session-day').value = day;
-  document.getElementById('session-time').value = time;
+  // Try to match existing time value in select, otherwise select first matching option
+  const sel = document.getElementById('session-time');
+  const match = Array.from(sel.options).find(o => o.value === time);
+  sel.value = match ? time : '';
   document.getElementById('session-capacity').value = capacity;
   document.getElementById('session-trainer').value = trainerId||'';
   document.getElementById('modal-session-title').textContent = 'Editar sesión';
