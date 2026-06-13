@@ -549,14 +549,14 @@ async function loadUsuarios() {
           <tbody>
             ${users.map(u => `
               <tr data-status="${u.status}">
-                <td>
+                <td data-label="Usuario">
                   <div style="font-weight:500">${u.name||'Sin nombre'}</div>
                   <div style="font-size:12px;color:var(--muted)">${u.email}</div>
                 </td>
-                <td><span class="badge badge-${u.role}">${u.role}</span></td>
-                <td><span class="badge badge-${u.status==='active'?'active':u.status==='pending'?'pending':'blocked'}">${u.status}</span></td>
-                <td style="color:var(--muted)">${formatDate(u.createdAt)}</td>
-                <td>
+                <td data-label="Rol"><span class="badge badge-${u.role}">${u.role}</span></td>
+                <td data-label="Estado"><span class="badge badge-${u.status==='active'?'active':u.status==='pending'?'pending':'blocked'}">${u.status}</span></td>
+                <td data-label="Desde" style="color:var(--muted)">${formatDate(u.createdAt)}</td>
+                <td data-label="Acciones">
                   <div style="display:flex;gap:6px;flex-wrap:wrap">
                     ${u.status==='pending'?`<button class="btn btn-success btn-sm" onclick="activateUser('${u.id}')">Activar</button>`:''}
                     ${u.status==='active'?`<button class="btn btn-danger btn-sm" onclick="blockUser('${u.id}')">Bloquear</button>`:''}
@@ -761,19 +761,19 @@ async function loadPagos() {
               const pays = allPays.filter(p=>p.userId===u.id).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
               const last = pays[0];
               return `<tr>
-                <td>
+                <td data-label="Usuario">
                   <div style="font-weight:500">${u.name||'Sin nombre'}</div>
                   <div style="font-size:12px;color:var(--muted)">${u.email}</div>
                 </td>
-                <td>${last?formatDate(last.createdAt):'Sin pagos'}</td>
-                <td>${last?`$${last.amount.toLocaleString('es-CO')}`:'—'}</td>
-                <td>
+                <td data-label="Último pago">${last?formatDate(last.createdAt):'Sin pagos'}</td>
+                <td data-label="Monto">${last?`$${last.amount.toLocaleString('es-CO')}`:'—'}</td>
+                <td data-label="Estado">
                   ${last?.vencido
                     ? '<span class="badge badge-blocked">Vencida</span>'
                     : last ? '<span class="badge badge-active">Al día</span>'
                     : '<span class="badge badge-pending">Sin registro</span>'}
                 </td>
-                <td>
+                <td data-label="Acciones">
                   <div style="display:flex;gap:6px;flex-wrap:wrap">
                     <button class="btn btn-primary btn-sm" onclick="openAddPago('${u.id}','${u.name||u.email}')">+ Registrar pago</button>
                     ${last && !last.vencido ? `<button class="btn btn-danger btn-sm" onclick="marcarVencido('${last.id}')">Marcar vencida</button>` : ''}
