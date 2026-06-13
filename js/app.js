@@ -1071,8 +1071,31 @@ window.savePerfil = async function() {
   toast('Perfil actualizado');
 };
 
-// ── Modal helpers ──────────────────────────────────────
+// Fix modal height on mobile using JS
+function fixModalHeight() {
+  const vh = window.innerHeight;
+  document.querySelectorAll('.modal').forEach(modal => {
+    const header = modal.querySelector('.modal-header');
+    const footer = modal.querySelector('.modal-footer');
+    const body = modal.querySelector('.modal-body');
+    if (!body) return;
+    const headerH = header ? header.offsetHeight : 0;
+    const footerH = footer ? footer.offsetHeight : 0;
+    const maxModal = Math.round(vh * 0.75);
+    const bodyMax = maxModal - headerH - footerH;
+    body.style.maxHeight = bodyMax + 'px';
+    modal.style.maxHeight = maxModal + 'px';
+  });
+}
+window.addEventListener('resize', fixModalHeight);
+
+// Override closeModal to also fix height on open
+const _origClose = window.closeModal;
 window.closeModal = function(id) {
   document.getElementById(id)?.classList.remove('open');
 };
+
+// Patch modal open calls to fix height
+const _origOpen = Element.prototype.classList;
+document.addEventListener('click', () => setTimeout(fixModalHeight, 50));
 window.navigateTo = navigateTo;
