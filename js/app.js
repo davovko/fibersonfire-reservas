@@ -1081,7 +1081,7 @@ function fixModalHeight() {
     if (!body) return;
     const headerH = header ? header.offsetHeight : 0;
     const footerH = footer ? footer.offsetHeight : 0;
-    const maxModal = Math.round(vh * 0.75);
+    const maxModal = Math.round(vh * 0.80);
     const bodyMax = maxModal - headerH - footerH;
     body.style.maxHeight = bodyMax + 'px';
     modal.style.maxHeight = maxModal + 'px';
@@ -1089,13 +1089,9 @@ function fixModalHeight() {
 }
 window.addEventListener('resize', fixModalHeight);
 
-// Override closeModal to also fix height on open
-const _origClose = window.closeModal;
 window.closeModal = function(id) {
   document.getElementById(id)?.classList.remove('open');
 };
 
-// Patch modal open calls to fix height
-const _origOpen = Element.prototype.classList;
 document.addEventListener('click', () => setTimeout(fixModalHeight, 50));
 window.navigateTo = navigateTo;
