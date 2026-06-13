@@ -146,6 +146,7 @@ a { color: var(--accent); text-decoration: none; }
   border-radius: var(--radius);
   padding: 24px;
   margin-bottom: 20px;
+  overflow: hidden;
 }
 
 .card-header {
@@ -338,12 +339,25 @@ tr:hover td { background: var(--bg3); }
 .modal {
   background: var(--bg2);
   border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
   border-radius: var(--radius) var(--radius) 0 0;
-  padding: 24px 20px;
+  padding: 20px 16px 32px;
   width: 100%;
   max-width: 100%;
-  max-height: 92vh;
+  max-height: 85vh;
   overflow-y: auto;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  background: var(--bg2);
+  padding: 4px 0 12px;
+  border-bottom: 1px solid var(--border);
+  z-index: 1;
 }
 @media (min-width: 600px) {
   .modal-overlay {
@@ -352,15 +366,16 @@ tr:hover td { background: var(--bg3); }
   }
   .modal {
     border-radius: var(--radius);
+    border-top: 1px solid var(--border);
     max-width: 480px;
     padding: 28px;
+    max-height: 90vh;
   }
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  .modal-header {
+    position: static;
+    padding: 0 0 0 0;
+    border-bottom: none;
+  }
 }
 .modal-title { font-size: 18px; font-weight: 600; }
 .modal-close {
