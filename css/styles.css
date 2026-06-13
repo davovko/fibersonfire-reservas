@@ -333,6 +333,7 @@ tr:hover td { background: var(--bg3); }
   z-index: 1000;
   align-items: flex-end;
   justify-content: center;
+  overflow: hidden;
 }
 .modal-overlay.open { display: flex; }
 
