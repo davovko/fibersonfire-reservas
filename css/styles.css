@@ -550,7 +550,7 @@ tr:hover td { background: var(--bg3); }
 
 @media (max-width: 599px) {
   .main-content { zoom: 0.85; }
-  .modal-overlay { zoom: 1; }
+  .modal { zoom: 0.85; }
 }
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
