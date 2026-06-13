@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gym Reservas</title>
+  <title>FibersOnFire 🔥</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -218,7 +218,6 @@
 <!-- ══════════════════════════════════════════════════════
      MODALS
 ════════════════════════════════════════════════════════ -->
-
 <!-- Modal: Ver sesión / reservar -->
 <div class="modal-overlay" id="modal-slot">
   <div class="modal">
@@ -226,7 +225,7 @@
       <span class="modal-title" id="modal-slot-title">Clase</span>
       <button class="modal-close" onclick="closeModal('modal-slot')">✕</button>
     </div>
-    <div id="modal-slot-body"></div>
+    <div class="modal-body" id="modal-slot-body"></div>
   </div>
 </div>
 
@@ -237,15 +236,17 @@
       <span class="modal-title">Cambiar rol</span>
       <button class="modal-close" onclick="closeModal('modal-role')">✕</button>
     </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Usuario: <strong id="role-user-name"></strong></p>
-    <input type="hidden" id="role-user-id">
-    <div class="form-group">
-      <label class="form-label">Nuevo rol</label>
-      <select class="form-select" id="role-select">
-        <option value="user">Usuario</option>
-        <option value="trainer">Entrenador</option>
-        <option value="admin">Admin</option>
-      </select>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Usuario: <strong id="role-user-name"></strong></p>
+      <input type="hidden" id="role-user-id">
+      <div class="form-group">
+        <label class="form-label">Nuevo rol</label>
+        <select class="form-select" id="role-select">
+          <option value="user">Usuario</option>
+          <option value="trainer">Entrenador</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-role')">Cancelar</button>
@@ -261,8 +262,8 @@
       <span class="modal-title" id="modal-session-title">Nueva sesión</span>
       <button class="modal-close" onclick="closeModal('modal-session')">✕</button>
     </div>
-    <input type="hidden" id="session-id">
-    <div class="two-col">
+    <div class="modal-body">
+      <input type="hidden" id="session-id">
       <div class="form-group">
         <label class="form-label">Día</label>
         <select class="form-select" id="session-day">
@@ -295,15 +296,15 @@
           <option value="8:00 PM - 9:00 PM">8:00 PM - 9:00 PM</option>
         </select>
       </div>
-    </div>
-    <div class="two-col">
-      <div class="form-group">
-        <label class="form-label">Capacidad máxima</label>
-        <input class="form-input" id="session-capacity" type="number" min="1" value="4">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Entrenador</label>
-        <select class="form-select" id="session-trainer"><option value="">Sin entrenador</option></select>
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">Capacidad máxima</label>
+          <input class="form-input" id="session-capacity" type="number" min="1" value="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entrenador</label>
+          <select class="form-select" id="session-trainer"><option value="">Sin entrenador</option></select>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -320,13 +321,15 @@
       <span class="modal-title">Bloquear fecha</span>
       <button class="modal-close" onclick="closeModal('modal-block')">✕</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Fecha</label>
-      <input class="form-input" id="block-date" type="date">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Motivo (opcional)</label>
-      <input class="form-input" id="block-reason" placeholder="Ej: Festivo, mantenimiento...">
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input class="form-input" id="block-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motivo (opcional)</label>
+        <input class="form-input" id="block-reason" placeholder="Ej: Festivo, mantenimiento...">
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-block')">Cancelar</button>
@@ -342,21 +345,23 @@
       <span class="modal-title">Registrar pago</span>
       <button class="modal-close" onclick="closeModal('modal-pago')">✕</button>
     </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Usuario: <strong id="pago-user-name"></strong></p>
-    <input type="hidden" id="pago-user-id">
-    <div class="two-col">
-      <div class="form-group">
-        <label class="form-label">Monto ($)</label>
-        <input class="form-input" id="pago-amount" type="number" placeholder="Ej: 120000">
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Usuario: <strong id="pago-user-name"></strong></p>
+      <input type="hidden" id="pago-user-id">
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">Monto ($)</label>
+          <input class="form-input" id="pago-amount" type="number" placeholder="Ej: 120000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de pago</label>
+          <input class="form-input" id="pago-date" type="date">
+        </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Fecha de pago</label>
-        <input class="form-input" id="pago-date" type="date">
+        <label class="form-label">Nota (opcional)</label>
+        <input class="form-input" id="pago-note" placeholder="Ej: Mensualidad junio">
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nota (opcional)</label>
-      <input class="form-input" id="pago-note" placeholder="Ej: Mensualidad junio">
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-pago')">Cancelar</button>
@@ -367,12 +372,12 @@
 
 <!-- Modal: Historial pagos -->
 <div class="modal-overlay" id="modal-historial-pago">
-  <div class="modal" style="max-width:560px">
+  <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modal-historial-pago-title">Historial de pagos</span>
       <button class="modal-close" onclick="closeModal('modal-historial-pago')">✕</button>
     </div>
-    <div id="modal-historial-pago-body"></div>
+    <div class="modal-body" id="modal-historial-pago-body"></div>
   </div>
 </div>
 
@@ -383,18 +388,20 @@
       <span class="modal-title" id="modal-rutina-title">Nueva rutina</span>
       <button class="modal-close" onclick="closeModal('modal-rutina')">✕</button>
     </div>
-    <input type="hidden" id="rutina-id">
-    <div class="form-group">
-      <label class="form-label">Usuario</label>
-      <select class="form-select" id="rutina-user"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Título</label>
-      <input class="form-input" id="rutina-title" placeholder="Ej: Rutina de fuerza - semana 1">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Contenido</label>
-      <textarea class="form-textarea" id="rutina-content" style="min-height:140px" placeholder="Ejercicios, series, repeticiones, notas..."></textarea>
+    <div class="modal-body">
+      <input type="hidden" id="rutina-id">
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <select class="form-select" id="rutina-user"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Título</label>
+        <input class="form-input" id="rutina-title" placeholder="Ej: Rutina de fuerza - semana 1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contenido</label>
+        <textarea class="form-textarea" id="rutina-content" style="min-height:140px" placeholder="Ejercicios, series, repeticiones, notas..."></textarea>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-rutina')">Cancelar</button>
@@ -410,14 +417,16 @@
       <span class="modal-title" id="modal-nota-title">Nueva nota</span>
       <button class="modal-close" onclick="closeModal('modal-nota')">✕</button>
     </div>
-    <input type="hidden" id="nota-id">
-    <div class="form-group">
-      <label class="form-label">Alumno</label>
-      <select class="form-select" id="nota-user"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nota</label>
-      <textarea class="form-textarea" id="nota-content" style="min-height:120px" placeholder="Observaciones sobre el progreso, técnica, objetivos..."></textarea>
+    <div class="modal-body">
+      <input type="hidden" id="nota-id">
+      <div class="form-group">
+        <label class="form-label">Alumno</label>
+        <select class="form-select" id="nota-user"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nota</label>
+        <textarea class="form-textarea" id="nota-content" style="min-height:120px" placeholder="Observaciones sobre el progreso, técnica, objetivos..."></textarea>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-nota')">Cancelar</button>
