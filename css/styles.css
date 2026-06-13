@@ -550,7 +550,12 @@ tr:hover td { background: var(--bg3); }
 
 @media (max-width: 599px) {
   .main-content { zoom: 0.85; }
-  .modal { zoom: 0.85; }
+  .modal {
+    zoom: 0.85;
+    width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
 }
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
