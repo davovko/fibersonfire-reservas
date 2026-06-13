@@ -271,7 +271,7 @@ tr:hover td { background: var(--bg3); }
 /* ── Schedule grid ── */
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 }
 .day-col { min-width: 0; }
@@ -520,7 +520,7 @@ tr:hover td { background: var(--bg3); }
   .sidebar-overlay.open { display: block; }
   .main-content { margin-left: 0; padding: 72px 16px 24px; }
   .hamburger { display: flex; }
-  .week-grid { grid-template-columns: repeat(2, 1fr); }
+  .week-grid { grid-template-columns: repeat(3, 1fr); }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .page-header { flex-direction: column; }
 }
