@@ -303,17 +303,25 @@ async function loadReservas() {
         const fillClass = pct >= 100 ? 'full-bar' : pct >= 75 ? 'almost' : '';
         const trainerName = s.trainerId ? (trainerMap[s.trainerId] || 'Sin entrenador') : 'Sin entrenador';
 
-        // Time window: open 12h before, close 1h before class
-        const startHour = parseInt(s.time.split(':')[0]);
+        // Parse start hour from AM/PM format e.g. "4:00 PM - 5:00 PM"
+        function parseStartHour(timeStr) {
+          const part = timeStr.split(' - ')[0].trim(); // "4:00 PM"
+          const [hm, ampm] = part.split(' ');
+          let hour = parseInt(hm.split(':')[0]);
+          if (ampm === 'PM' && hour !== 12) hour += 12;
+          if (ampm === 'AM' && hour === 12) hour = 0;
+          return hour;
+        }
+        const startHour = parseStartHour(s.time);
         const classStart = new Date(date);
         classStart.setHours(startHour, 0, 0, 0);
         const openAt  = new Date(classStart.getTime() - 12 * 60 * 60 * 1000);
-        const closeAt = new Date(classStart.getTime() -  1 * 60 * 60 * 1000);
+        const closeAt = classStart; // cierra cuando empieza la clase
         const now = new Date();
         const isAdminRole = currentUserData.role === 'admin';
-        const isPast = now > classStart; // fecha/hora ya pasó — bloquea para todos
+        const isPast = now >= classStart;
         const notYetOpen = now < openAt;
-        const alreadyClosed = now > closeAt;
+        const alreadyClosed = now >= closeAt;
         const isSessionManuallyBlocked = blockedSessions.includes(`${s.id}_${dk}`);
         const isLocked = isPast || isSessionManuallyBlocked || (!isAdminRole && (notYetOpen || alreadyClosed) && !myBooking);
 
