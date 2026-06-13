@@ -147,8 +147,8 @@ function loadPage(page) {
 }
 
 // ── Helpers ────────────────────────────────────────────
-const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
-const DAY_KEYS = ['lunes','martes','miercoles','jueves','viernes'];
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DAY_KEYS = ['lunes','martes','miercoles','jueves','viernes','sabado'];
 
 function formatDate(ts) {
   if (!ts) return '—';
@@ -254,6 +254,9 @@ async function loadReservas() {
   const dates = getWeekDates(monday);
   const blockedSnap = await getDocs(collection(db,'blocked_dates'));
   const blocked = blockedSnap.docs.map(d => d.id);
+  // Also get manually blocked sessions
+  const blockedSessionsSnap = await getDocs(collection(db,'blocked_sessions'));
+  const blockedSessions = blockedSessionsSnap.docs.map(d => d.id);
   const sessionsSnap = await getDocs(collection(db,'sessions'));
   const sessions = sessionsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   const bookingsSnap = await getDocs(query(collection(db,'bookings'), where('status','==','activa')));
@@ -264,7 +267,7 @@ async function loadReservas() {
   const trainerMap = {};
   trainersSnap.docs.forEach(d => { trainerMap[d.id] = d.data().name; });
 
-  const weekLabel = `${dates[0].toLocaleDateString('es-CO',{day:'2-digit',month:'short'})} – ${dates[4].toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}`;
+  const weekLabel = `${dates[0].toLocaleDateString('es-CO',{day:'2-digit',month:'short'})} – ${dates[5].toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}`;
 
   let html = `
     <div class="flex-between" style="margin-bottom:20px;flex-wrap:wrap;gap:10px">
@@ -311,11 +314,14 @@ async function loadReservas() {
         const isPast = now > classStart; // fecha/hora ya pasó — bloquea para todos
         const notYetOpen = now < openAt;
         const alreadyClosed = now > closeAt;
-        const isLocked = isPast || (!isAdminRole && (notYetOpen || alreadyClosed) && !myBooking);
+        const isSessionManuallyBlocked = blockedSessions.includes(`${s.id}_${dk}`);
+        const isLocked = isPast || isSessionManuallyBlocked || (!isAdminRole && (notYetOpen || alreadyClosed) && !myBooking);
 
         let lockLabel = '';
         if (isPast) {
           lockLabel = `<div style="font-size:10px;color:var(--muted);margin-top:4px">✓ Clase finalizada</div>`;
+        } else if (isSessionManuallyBlocked) {
+          lockLabel = `<div style="font-size:10px;color:var(--danger);margin-top:4px">🔒 Inscripciones cerradas</div>`;
         } else if (!isAdminRole && notYetOpen) {
           lockLabel = `<div style="font-size:10px;color:var(--warning);margin-top:4px">🔒 Abre ${openAt.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>`;
         } else if (!isAdminRole && alreadyClosed && !myBooking) {
@@ -368,6 +374,10 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
     where('sessionId','==',sessionId), where('dateKey','==',dk), where('status','==','activa')));
   const bookings = bookingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+  // Check if this specific session+date is manually blocked by admin
+  const sessionBlockSnap = await getDoc(doc(db,'blocked_sessions',`${sessionId}_${dk}`));
+  const isSessionBlocked = sessionBlockSnap.exists();
+
   // Fetch active users for admin selector — solo clases NO pasadas
   let adminAssignHtml = '';
   if (role === 'admin' && !isLocked) {
@@ -376,16 +386,26 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
     const bookedIds = bookings.map(b => b.userId);
     const available = users.filter(u => !bookedIds.includes(u.id));
     const options = available.map(u => `<option value="${u.id}" data-name="${u.name||u.email}" data-email="${u.email}">${u.name||u.email}</option>`).join('');
+
+    const blockBtn = isSessionBlocked
+      ? `<button class="btn btn-success btn-sm" onclick="toggleSessionBlock('${sessionId}','${dk}',false)">🔓 Abrir inscripciones</button>`
+      : `<button class="btn btn-danger btn-sm" onclick="toggleSessionBlock('${sessionId}','${dk}',true)">🔒 Cerrar inscripciones</button>`;
+
     adminAssignHtml = `
       <div class="divider"></div>
-      <p style="font-size:13px;font-weight:600;margin-bottom:10px">Inscribir usuario</p>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select class="form-select" id="assign-user-select" style="flex:1">
-          <option value="">Selecciona un usuario...</option>
-          ${options}
-        </select>
-        <button class="btn btn-primary" onclick="adminAssignUser('${sessionId}','${dk}','${time}','${dayName}')">Inscribir</button>
-      </div>`;
+      <div class="flex-between" style="margin-bottom:10px">
+        <p style="font-size:13px;font-weight:600">Inscribir usuario</p>
+        ${blockBtn}
+      </div>
+      ${isSessionBlocked
+        ? `<div class="alert alert-warning" style="margin-bottom:0">🔒 Inscripciones cerradas manualmente por el admin.</div>`
+        : `<div style="display:flex;gap:8px;align-items:center">
+            <select class="form-select" id="assign-user-select" style="flex:1">
+              <option value="">Selecciona un usuario...</option>
+              ${options}
+            </select>
+            <button class="btn btn-primary" onclick="adminAssignUser('${sessionId}','${dk}','${time}','${dayName}')">Inscribir</button>
+          </div>`}`;
   }
 
   let peopleHtml = bookings.length === 0
@@ -424,6 +444,19 @@ window.handleSlotClick = async function(sessionId, dk, time, dayName, isFull, is
 
   document.getElementById('modal-slot-title').textContent = `Clase ${time}`;
   modal.classList.add('open');
+};
+
+window.toggleSessionBlock = async function(sessionId, dk, block) {
+  const ref = doc(db,'blocked_sessions',`${sessionId}_${dk}`);
+  if (block) {
+    await setDoc(ref, { sessionId, dateKey: dk, blockedAt: serverTimestamp(), blockedBy: currentUser.uid });
+    toast('Inscripciones cerradas para esta sesión');
+  } else {
+    await deleteDoc(ref);
+    toast('Inscripciones abiertas nuevamente');
+  }
+  closeModal('modal-slot');
+  loadReservas();
 };
 
 window.adminAssignUser = async function(sessionId, dk, time, dayName) {
